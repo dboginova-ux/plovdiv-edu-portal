@@ -2,282 +2,130 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Образователен портал Пловдив</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Oswald:wght@500;700&display=swap');
-        
-        body { 
-            font-family: 'Roboto', sans-serif; 
-            scroll-behavior: smooth;
-        }
-
+        body { font-family: 'Roboto', sans-serif; }
         h1, h2, h3 { font-family: 'Oswald', sans-serif; }
-
-        .lesson-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr));
-            gap: 2rem;
-        }
-
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .drag-over {
-            border-color: #1e3a8a !important;
-            background-color: #dbeafe !important;
-        }
-
-        /* Анимация за плавно показване на модала */
-        #uploadModal {
-            transition: opacity 0.3s ease;
-        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen pb-20">
+<body class="bg-gray-50 text-gray-900 min-h-screen">
 
     <!-- Header -->
-    <header class="bg-blue-900 text-white sticky top-0 z-[100] shadow-2xl border-b-4 border-amber-500">
-        <div class="max-w-7xl mx-auto px-4 py-4 md:py-6 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <div class="bg-amber-500 p-2 md:p-3 rounded-xl shadow-lg">
-                    <i class="fas fa-book-reader text-blue-900 text-2xl"></i>
+    <header class="bg-blue-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-500 p-2 rounded-lg">
+                    <i class="fas fa-university text-blue-900"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl md:text-3xl font-bold uppercase tracking-tight">Портал Пловдив</h1>
-                    <p class="text-[10px] md:text-xs text-amber-400 font-bold uppercase tracking-widest">Образователни ресурси</p>
+                    <h1 class="text-xl font-bold uppercase tracking-tight leading-none">Портал Пловдив</h1>
+                    <span class="text-[10px] text-amber-400 uppercase font-bold">Споделени знания</span>
                 </div>
             </div>
-            
-            <div class="flex items-center gap-3">
-                <button id="openModalBtn" 
-                        class="bg-amber-500 text-blue-900 px-5 md:px-8 py-3 rounded-xl font-black text-xs md:text-sm hover:bg-amber-400 transition-all shadow-lg active:scale-95 flex items-center uppercase">
-                    <i class="fas fa-file-upload mr-2"></i> Качи файл
+            <div class="flex items-center gap-2">
+                <button onclick="openModal()" class="bg-amber-500 text-blue-900 px-4 py-2 rounded-lg font-bold text-sm hover:bg-amber-400 transition flex items-center shadow-md">
+                    <i class="fas fa-plus mr-2"></i> КАЧИ ФАЙЛ
                 </button>
-                <button id="adminToggle" 
-                        class="w-12 h-12 border-2 border-blue-400 rounded-xl flex items-center justify-center hover:bg-blue-800 transition shadow-sm">
+                <button onclick="toggleAdmin()" id="adminBtn" class="p-2 border border-blue-400 rounded-lg text-blue-400 hover:bg-blue-800 transition">
                     <i class="fas fa-shield-alt"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Navigation -->
-    <nav class="bg-white border-b sticky top-[76px] md:top-[104px] z-50 shadow-sm overflow-x-auto no-scrollbar">
-        <div class="max-w-7xl mx-auto px-4 flex min-w-max">
-            <button id="tab-all" class="py-5 px-8 font-black text-[10px] md:text-xs uppercase tracking-widest border-b-4 border-blue-900 text-blue-900 filter-btn" data-subject="all">Всички ресурси</button>
-            <button id="tab-geo" class="py-5 px-8 font-black text-[10px] md:text-xs uppercase tracking-widest border-b-4 border-transparent text-slate-400 hover:text-blue-900 filter-btn" data-subject="География и икономика">География</button>
-            <button id="tab-hist" class="py-5 px-8 font-black text-[10px] md:text-xs uppercase tracking-widest border-b-4 border-transparent text-slate-400 hover:text-blue-900 filter-btn" data-subject="История и цивилизации">История</button>
+    <!-- Filters -->
+    <nav class="bg-white border-b shadow-sm overflow-x-auto no-scrollbar">
+        <div class="max-w-7xl mx-auto px-4 flex">
+            <button onclick="setFilter('all')" class="filter-tab py-4 px-6 text-xs font-bold uppercase tracking-widest border-b-2 border-blue-900 text-blue-900" id="filter-all">Всички</button>
+            <button onclick="setFilter('География')" class="filter-tab py-4 px-6 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-gray-400" id="filter-geo">География</button>
+            <button onclick="setFilter('История')" class="filter-tab py-4 px-6 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-gray-400" id="filter-hist">История</button>
         </div>
     </nav>
 
-    <!-- Main Content -->
+    <!-- Content -->
     <main class="max-w-7xl mx-auto px-4 py-8">
-        <div id="adminNotice" class="hidden bg-red-600 text-white p-6 rounded-2xl mb-10 shadow-xl flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <i class="fas fa-user-check text-2xl"></i>
-                <div>
-                    <p class="font-black uppercase text-sm tracking-widest">Административен панел</p>
-                    <p class="text-[10px] opacity-90 uppercase font-bold">Одобряване на нови качвания</p>
-                </div>
+        <div id="adminBadge" class="hidden bg-red-100 border-l-4 border-red-600 p-4 rounded-r-lg mb-6 flex justify-between items-center">
+            <div>
+                <p class="text-red-700 font-bold text-sm uppercase">Административен режим</p>
+                <p class="text-red-500 text-xs uppercase">Виждате чакащите одобрение файлове</p>
             </div>
-            <button id="exitAdminBtn" class="bg-white text-red-600 px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-lg">Изход</button>
+            <button onclick="toggleAdmin()" class="text-red-700 font-bold text-xs underline">ИЗХОД</button>
         </div>
 
-        <div id="lessonsGrid" class="lesson-grid">
-            <div id="loading" class="col-span-full text-center py-32">
-                <div class="w-16 h-16 border-4 border-blue-900 border-t-amber-500 rounded-full animate-spin mx-auto mb-6"></div>
-                <p class="text-slate-400 font-bold uppercase tracking-widest text-xs">Зареждане на ресурси...</p>
-            </div>
+        <div id="loader" class="text-center py-20">
+            <i class="fas fa-circle-notch fa-spin text-4xl text-blue-900"></i>
+        </div>
+
+        <div id="lessonsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cards load here -->
         </div>
     </main>
 
-    <!-- Upload Modal -->
-    <div id="uploadModal" class="fixed inset-0 bg-slate-900/90 hidden flex items-end md:items-center justify-center z-[200] backdrop-blur-md">
-        <div class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-2xl max-h-[95vh] overflow-y-auto shadow-2xl p-6 md:p-10">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-bold text-blue-950 uppercase">Качи учебен ресурс</h2>
-                <button type="button" id="closeModalBtn" class="text-slate-400 hover:text-red-600 transition">
-                    <i class="fas fa-times-circle text-3xl"></i>
-                </button>
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[100] p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+            <div class="bg-blue-900 p-6 text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase tracking-wide">Добави нов ресурс</h2>
+                <button onclick="closeModal()" class="text-white/60 hover:text-white"><i class="fas fa-times text-xl"></i></button>
             </div>
-            <form id="lessonForm" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Предмет</label>
-                        <select id="subject" class="w-full bg-slate-100 p-4 rounded-xl font-bold outline-none border-2 border-transparent focus:border-blue-900 transition">
-                            <option value="География и икономика">География и икономика</option>
-                            <option value="История и цивилизации">История и цивилизации</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Автор</label>
-                        <input type="text" id="author" required placeholder="Вашето име" class="w-full bg-slate-100 p-4 rounded-xl outline-none border-2 border-transparent focus:border-blue-900 transition">
-                    </div>
+            <form id="uploadForm" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Предмет</label>
+                    <select id="fSubject" class="w-full bg-gray-50 border p-3 rounded-lg outline-none focus:border-blue-900 font-bold">
+                        <option value="География">География и икономика</option>
+                        <option value="История">История и цивилизации</option>
+                    </select>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Заглавие</label>
-                    <input type="text" id="title" required placeholder="Име на ресурса" class="w-full bg-slate-100 p-4 rounded-xl outline-none border-2 border-transparent focus:border-blue-900 transition">
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Име и Фамилия</label>
+                    <input type="text" id="fAuthor" required class="w-full bg-gray-50 border p-3 rounded-lg outline-none focus:border-blue-900 font-bold" placeholder="Иван Иванов">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Прикачи файл (Word, PDF, PPTX)</label>
-                    <div class="relative">
-                        <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx">
-                        <div id="fileDropzone" 
-                             class="w-full bg-blue-50 p-8 rounded-xl border-2 border-dashed border-blue-200 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-100 transition duration-200">
-                            <i id="fileIcon" class="fas fa-cloud-upload-alt text-4xl text-blue-500 mb-3 transition-all"></i>
-                            <span id="fileNameDisplay" class="text-sm font-bold text-slate-600 uppercase text-center">Кликни за избор на файл</span>
-                            <span id="fileSizeDisplay" class="text-[9px] text-slate-400 mt-1 uppercase tracking-wider">Макс. 1MB</span>
-                        </div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Заглавие на урока</label>
+                    <input type="text" id="fTitle" required class="w-full bg-gray-50 border p-3 rounded-lg outline-none focus:border-blue-900 font-bold" placeholder="Климатът на България">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Файл (Word, PDF, PPTX)</label>
+                    <input type="file" id="fInput" class="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx">
+                    <div onclick="document.getElementById('fInput').click()" id="dropzone" class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:bg-blue-50 transition">
+                        <i id="fIcon" class="fas fa-file-upload text-3xl text-blue-400 mb-2"></i>
+                        <p id="fName" class="text-xs font-bold text-gray-600 uppercase">Избери файл</p>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Описание</label>
-                    <textarea id="content" rows="3" required placeholder="Кратко описание на съдържанието..." class="w-full bg-slate-100 p-4 rounded-xl outline-none border-2 border-transparent focus:border-blue-900 transition"></textarea>
-                </div>
-                <div id="submitError" class="hidden text-red-600 font-bold text-xs uppercase text-center mb-4"></div>
-                <button type="submit" id="submitBtn" class="w-full bg-blue-900 text-white font-black py-5 rounded-2xl hover:bg-blue-800 transition shadow-lg uppercase tracking-widest disabled:opacity-50 active:scale-95">
+                <button type="submit" id="submitBtn" class="w-full bg-blue-900 text-white font-bold py-4 rounded-xl hover:bg-blue-800 transition uppercase tracking-widest shadow-lg">
                     Изпрати за одобрение
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-white border-l-8 border-blue-900 p-5 rounded-2xl shadow-2xl z-[500] translate-y-40 transition-all duration-500">
-        <p id="toastMsg" class="font-black text-slate-800 text-xs uppercase tracking-wide"></p>
-    </div>
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest shadow-2xl opacity-0 transition-opacity pointer-events-none z-[200]"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'plovdiv-edu-portal-v1';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'plovdiv-portal-fix';
 
         let isAdmin = false;
-        let activeFilter = 'all';
+        let currentFilter = 'all';
+        let attachedFile = null;
+        let currentUser = null;
         let unsubscribe = null;
-        let attachedFileData = null;
-        let isFileLoading = false;
 
-        // UI Елементи
-        const uploadModal = document.getElementById('uploadModal');
-        const openModalBtn = document.getElementById('openModalBtn');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const fileInput = document.getElementById('fileInput');
-        const fileDropzone = document.getElementById('fileDropzone');
-        const fileNameDisplay = document.getElementById('fileNameDisplay');
-        const fileIcon = document.getElementById('fileIcon');
-        const lessonForm = document.getElementById('lessonForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const adminToggle = document.getElementById('adminToggle');
-        const exitAdminBtn = document.getElementById('exitAdminBtn');
-
-        // Модал контрол
-        openModalBtn.addEventListener('click', () => {
-            uploadModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        });
-
-        const handleCloseModal = () => {
-            uploadModal.classList.add('hidden');
-            document.body.style.overflow = '';
-            lessonForm.reset();
-            resetFileUI();
-        };
-
-        closeModalBtn.addEventListener('click', handleCloseModal);
-
-        // Файлов контрол
-        fileDropzone.addEventListener('click', () => fileInput.click());
-
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) handleFile(file);
-        });
-
-        // Drag and Drop
-        fileDropzone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            fileDropzone.classList.add('drag-over');
-        });
-
-        fileDropzone.addEventListener('dragleave', () => {
-            fileDropzone.classList.remove('drag-over');
-        });
-
-        fileDropzone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            fileDropzone.classList.remove('drag-over');
-            const file = e.dataTransfer.files[0];
-            if (file) handleFile(file);
-        });
-
-        function handleFile(file) {
-            if (file.size > 1024 * 1024) {
-                showToast("Файлът е твърде голям! Максимум 1MB.");
-                resetFileUI();
-                return;
-            }
-
-            isFileLoading = true;
-            submitBtn.disabled = true;
-            fileNameDisplay.innerText = "Обработка на файла...";
-            fileIcon.className = "fas fa-spinner fa-spin text-4xl text-blue-500 mb-3";
-
-            const reader = new FileReader();
-            
-            reader.onloadstart = () => {
-                isFileLoading = true;
-            };
-
-            reader.onload = (e) => {
-                attachedFileData = {
-                    base64: e.target.result,
-                    name: file.name,
-                    type: file.type
-                };
-                fileNameDisplay.innerText = file.name;
-                fileIcon.className = getFileIconClass(file.name) + " text-4xl mb-3";
-                fileDropzone.classList.add('bg-blue-100', 'border-blue-400');
-                isFileLoading = false;
-                submitBtn.disabled = false;
-            };
-
-            reader.onerror = () => {
-                showToast("Грешка при четене на файла.");
-                resetFileUI();
-            };
-
-            reader.readAsDataURL(file);
-        }
-
-        function getFileIconClass(fileName) {
-            const ext = fileName.split('.').pop().toLowerCase();
-            if (ext === 'pdf') return 'fas fa-file-pdf text-red-500';
-            if (['doc', 'docx'].includes(ext)) return 'fas fa-file-word text-blue-600';
-            if (['ppt', 'pptx'].includes(ext)) return 'fas fa-file-powerpoint text-orange-500';
-            return 'fas fa-file-alt text-slate-500';
-        }
-
-        function resetFileUI() {
-            attachedFileData = null;
-            isFileLoading = false;
-            fileInput.value = "";
-            fileNameDisplay.innerText = "Кликни за избор на файл";
-            fileIcon.className = "fas fa-cloud-upload-alt text-4xl text-blue-500 mb-3";
-            fileDropzone.classList.remove('bg-blue-100', 'border-blue-400');
-            submitBtn.disabled = false;
-        }
-
-        // Firebase Auth
+        // --- Auth Implementation (RULE 3) ---
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -287,170 +135,201 @@
                 }
             } catch (error) {
                 console.error("Auth error:", error);
+                showToast("Грешка при свързване със сървъра");
             }
         };
 
+        // Listen for auth state changes
         onAuthStateChanged(auth, (user) => {
+            currentUser = user;
             if (user) {
-                startDataSync();
+                loadData();
             } else {
                 initAuth();
             }
         });
 
-        // Sync Data
-        function startDataSync() {
-            if (!auth.currentUser) return;
+        // --- Data Loading (RULE 1 & 2) ---
+        function loadData() {
+            if (!currentUser) return; // Guard against unauthenticated queries
+
+            // Clean up old listener
             if (unsubscribe) unsubscribe();
 
-            const collRef = collection(db, 'artifacts', appId, 'public', 'data', 'lessons');
+            const lessonsRef = collection(db, 'artifacts', appId, 'public', 'data', 'lessons');
             
-            unsubscribe = onSnapshot(collRef, (snap) => {
+            // Simple query only (RULE 2)
+            unsubscribe = onSnapshot(lessonsRef, (snapshot) => {
+                document.getElementById('loader').classList.add('hidden');
                 const grid = document.getElementById('lessonsGrid');
                 grid.innerHTML = '';
                 
-                const docs = [];
-                snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+                let data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-                // Filter & Sort
-                let filtered = isAdmin ? docs.filter(d => d.status === 'pending') : docs.filter(d => d.status === 'approved');
-                if (activeFilter !== 'all') filtered = filtered.filter(d => d.subject === activeFilter);
-                filtered.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                // Filter & Sort in JavaScript memory (RULE 2)
+                let filtered = isAdmin ? data.filter(i => i.status === 'pending') : data.filter(i => i.status === 'approved');
+                if (currentFilter !== 'all') filtered = filtered.filter(i => i.subject === currentFilter);
+                
+                filtered.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
                 if (filtered.length === 0) {
-                    grid.innerHTML = `<div class="col-span-full py-20 text-center opacity-40 font-bold uppercase text-xs">Няма открити ресурси</div>`;
-                    return;
+                    grid.innerHTML = `<div class="col-span-full py-10 text-center text-gray-400 font-bold uppercase text-xs">Няма открити материали</div>`;
                 }
 
                 filtered.forEach(item => {
                     const card = document.createElement('div');
-                    card.className = "bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col hover:shadow-xl transition-all group";
+                    card.className = "bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition flex flex-col";
                     card.innerHTML = `
-                        <div class="flex justify-between items-start mb-4">
-                            <span class="text-[9px] font-black bg-blue-50 text-blue-700 px-3 py-1 rounded-lg uppercase tracking-widest">${item.subject}</span>
-                            <i class="${item.fileData ? getFileIconClass(item.fileData.name) : 'fas fa-file-alt text-slate-200'} text-xl"></i>
+                        <div class="flex justify-between mb-3">
+                            <span class="text-[9px] font-bold bg-blue-50 text-blue-700 px-2 py-1 rounded uppercase tracking-tighter">${item.subject}</span>
+                            <i class="fas fa-file-alt text-gray-300"></i>
                         </div>
-                        <h3 class="font-bold text-lg mb-2 text-slate-800">${item.title}</h3>
-                        <p class="text-slate-500 text-sm mb-6 line-clamp-3">${item.content}</p>
-                        ${item.fileData ? `
-                            <button onclick="window.download('${item.fileData.base64}', '${item.fileData.name}')" class="w-full bg-slate-900 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-900 transition mb-4">
-                                <i class="fas fa-download mr-2"></i> Изтегли
-                            </button>
-                        ` : ''}
-                        <div class="mt-auto pt-4 border-t border-slate-50 flex justify-between items-center">
-                            <div class="text-[10px]">
-                                <span class="block text-slate-400 font-bold uppercase">Автор</span>
-                                <span class="font-bold text-slate-700 uppercase">${item.author}</span>
-                            </div>
-                            <div class="flex gap-2">
-                                ${isAdmin ? `
-                                    <button onclick="window.manage('${item.id}', 'approved')" class="w-8 h-8 bg-emerald-500 text-white rounded-lg"><i class="fas fa-check"></i></button>
-                                    <button onclick="window.manage('${item.id}', 'delete')" class="w-8 h-8 bg-red-500 text-white rounded-lg"><i class="fas fa-trash"></i></button>
-                                ` : ''}
-                            </div>
+                        <h3 class="font-bold text-gray-800 mb-1 leading-tight">${item.title}</h3>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase mb-4">Автор: ${item.author}</p>
+                        
+                        <div class="mt-auto pt-4 border-t border-gray-50 flex gap-2">
+                            ${item.fileData ? `
+                                <button onclick="window.downloadFile('${item.fileData.base64}', '${item.fileData.name}')" class="flex-1 bg-gray-900 text-white py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-900 transition">
+                                    <i class="fas fa-download mr-1"></i> Изтегли
+                                </button>
+                            ` : ''}
+                            ${isAdmin ? `
+                                <button onclick="window.approveDoc('${item.id}')" class="bg-emerald-500 text-white w-10 h-8 rounded-lg"><i class="fas fa-check"></i></button>
+                                <button onclick="window.deleteDoc('${item.id}')" class="bg-red-500 text-white w-10 h-8 rounded-lg"><i class="fas fa-trash"></i></button>
+                            ` : ''}
                         </div>
                     `;
                     grid.appendChild(card);
                 });
-            }, (err) => {
-                console.error("Firestore error:", err);
+            }, (error) => {
+                console.error("Snapshot error:", error);
+                if (error.code === 'permission-denied') {
+                    showToast("Нямате права за достъп");
+                }
             });
         }
 
-        // Global functions
-        window.download = (b64, name) => {
+        // --- File Handling ---
+        document.getElementById('fInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 1024 * 1024) {
+                showToast("Файлът е твърде голям (макс 1MB)");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                attachedFile = {
+                    base64: ev.target.result,
+                    name: file.name
+                };
+                document.getElementById('fName').innerText = file.name;
+                document.getElementById('fIcon').className = "fas fa-check-circle text-3xl text-emerald-500 mb-2";
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // --- Submit ---
+        document.getElementById('uploadForm').onsubmit = async (e) => {
+            e.preventDefault();
+            if (!currentUser) {
+                showToast("Моля, изчакайте оторизация...");
+                return;
+            }
+            if (!attachedFile) {
+                showToast("Моля, прикачете файл");
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerText = "ИЗПРАЩАНЕ...";
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'lessons'), {
+                    title: document.getElementById('fTitle').value,
+                    author: document.getElementById('fAuthor').value,
+                    subject: document.getElementById('fSubject').value,
+                    fileData: attachedFile,
+                    status: 'pending',
+                    createdAt: serverTimestamp()
+                });
+                closeModal();
+                showToast("Успешно изпратено!");
+            } catch (err) {
+                console.error("Upload error:", err);
+                showToast("Грешка при качване");
+                btn.disabled = false;
+                btn.innerText = "ИЗПРАТИ ЗА ОДОБРЕНИЕ";
+            }
+        };
+
+        // --- Global Actions ---
+        window.downloadFile = (b64, name) => {
             const a = document.createElement('a');
             a.href = b64;
             a.download = name;
             a.click();
         };
 
-        window.manage = async (id, action) => {
-            if (!auth.currentUser) return;
+        window.approveDoc = async (id) => {
+            if (!currentUser) return;
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lessons', id);
-            try {
-                if (action === 'delete') {
-                    if(confirm("Сигурни ли сте, че искате да изтриете този ресурс?")) await deleteDoc(docRef);
-                } else {
-                    await updateDoc(docRef, { status: action });
-                    showToast("Статусът е обновен.");
-                }
-            } catch (e) {
-                showToast("Грешка при операцията.");
+            await updateDoc(docRef, { status: 'approved' });
+            showToast("Одобрено!");
+        };
+
+        window.deleteDoc = async (id) => {
+            if (!currentUser) return;
+            if(confirm("Изтриване?")) {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lessons', id);
+                await deleteDoc(docRef);
+                showToast("Изтрито");
             }
         };
 
-        // Navigation
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                activeFilter = e.target.dataset.subject;
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('border-blue-900', 'text-blue-900'));
-                e.target.classList.add('border-blue-900', 'text-blue-900');
-                startDataSync();
+        // --- UI Utils ---
+        window.openModal = () => {
+            document.getElementById('modal').style.display = 'flex';
+        };
+
+        window.closeModal = () => {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('uploadForm').reset();
+            attachedFile = null;
+            document.getElementById('fName').innerText = "Избери файл";
+            document.getElementById('fIcon').className = "fas fa-file-upload text-3xl text-blue-400 mb-2";
+        };
+
+        window.setFilter = (val) => {
+            currentFilter = val;
+            document.querySelectorAll('.filter-tab').forEach(t => {
+                t.classList.remove('border-blue-900', 'text-blue-900');
+                t.classList.add('text-gray-400', 'border-transparent');
             });
-        });
+            const activeId = val === 'all' ? 'filter-all' : (val === 'География' ? 'filter-geo' : 'filter-hist');
+            const active = document.getElementById(activeId);
+            active.classList.add('border-blue-900', 'text-blue-900');
+            active.classList.remove('text-gray-400', 'border-transparent');
+            loadData();
+        };
 
-        // Admin Toggle
-        const toggleAdmin = () => {
+        window.toggleAdmin = () => {
             isAdmin = !isAdmin;
-            document.getElementById('adminNotice').classList.toggle('hidden', !isAdmin);
-            adminToggle.classList.toggle('bg-red-600', isAdmin);
-            adminToggle.classList.toggle('text-white', isAdmin);
-            startDataSync();
+            document.getElementById('adminBadge').classList.toggle('hidden', !isAdmin);
+            const btn = document.getElementById('adminBtn');
+            btn.classList.toggle('bg-red-600', isAdmin);
+            btn.classList.toggle('text-white', isAdmin);
+            loadData();
         };
 
-        adminToggle.addEventListener('click', toggleAdmin);
-        exitAdminBtn.addEventListener('click', toggleAdmin);
-
-        // Form Submit
-        lessonForm.onsubmit = async (e) => {
-            e.preventDefault();
-            
-            if (!auth.currentUser) {
-                showToast("Моля, изчакайте свързване със сървъра...");
-                return;
-            }
-
-            if (isFileLoading) {
-                showToast("Моля, изчакайте файлът да се зареди.");
-                return;
-            }
-
-            if (!attachedFileData) {
-                showToast("Моля, изберете файл за качване.");
-                return;
-            }
-
-            submitBtn.disabled = true;
-            submitBtn.innerText = "ИЗПРАЩАНЕ...";
-
-            const payload = {
-                title: document.getElementById('title').value,
-                author: document.getElementById('author').value,
-                subject: document.getElementById('subject').value,
-                content: document.getElementById('content').value,
-                fileData: attachedFileData,
-                status: 'pending',
-                createdAt: serverTimestamp()
-            };
-
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'lessons'), payload);
-                handleCloseModal();
-                showToast("Успешно изпратено за одобрение!");
-            } catch (err) {
-                console.error("Upload error:", err);
-                showToast("Грешка при изпращане.");
-                submitBtn.disabled = false;
-                submitBtn.innerText = "ИЗПРАТИ ЗА ОДОБРЕНИЕ";
-            }
-        };
-
-        function showToast(msg) {
+        function showToast(m) {
             const t = document.getElementById('toast');
-            document.getElementById('toastMsg').innerText = msg;
-            t.style.transform = 'translateY(0)';
-            setTimeout(() => t.style.transform = 'translateY(160%)', 3000);
+            t.innerText = m;
+            t.style.opacity = '1';
+            setTimeout(() => t.style.opacity = '0', 3000);
         }
     </script>
 </body>
