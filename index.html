@@ -24,6 +24,11 @@
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .drag-over {
+            border-color: #1e3a8a !important;
+            background-color: #dbeafe !important;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen pb-20">
@@ -113,18 +118,20 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Избери файл (PDF, Docx, Изображение)</label>
-                    <div class="relative group">
-                        <label for="fileInput" id="fileDropzone" class="w-full bg-amber-50 p-6 rounded-xl border-2 border-dashed border-amber-300 flex flex-col items-center justify-center cursor-pointer hover:bg-amber-100 transition">
-                            <i id="fileIcon" class="fas fa-cloud-upload-alt text-3xl text-amber-500 mb-2"></i>
-                            <span id="fileNameDisplay" class="text-xs font-bold text-slate-600 uppercase text-center">Кликнете, за да изберете файл</span>
-                            <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.ppt,.pptx">
-                        </label>
+                    <div class="relative">
+                        <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.ppt,.pptx">
+                        <div id="fileDropzone" 
+                             onclick="document.getElementById('fileInput').click()"
+                             class="w-full bg-amber-50 p-8 rounded-xl border-2 border-dashed border-amber-300 flex flex-col items-center justify-center cursor-pointer hover:bg-amber-100 transition duration-200">
+                            <i id="fileIcon" class="fas fa-cloud-upload-alt text-4xl text-amber-500 mb-3"></i>
+                            <span id="fileNameDisplay" class="text-sm font-bold text-slate-600 uppercase text-center">Избери файл от устройството</span>
+                            <span id="fileSizeDisplay" class="text-[9px] text-slate-400 mt-1 uppercase">Разрешени: PDF, DOCX, JPG, PNG (до 1MB)</span>
+                        </div>
                     </div>
-                    <p class="text-[9px] text-slate-400 mt-2 uppercase font-bold text-center">* Максимален размер: 1MB</p>
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Описание</label>
-                    <textarea id="content" rows="4" required placeholder="Кратко описание..." class="w-full bg-slate-100 p-4 rounded-xl outline-none border-2 border-transparent focus:border-blue-900"></textarea>
+                    <textarea id="content" rows="3" required placeholder="Кратко описание..." class="w-full bg-slate-100 p-4 rounded-xl outline-none border-2 border-transparent focus:border-blue-900"></textarea>
                 </div>
                 <button type="submit" id="submitBtn" class="w-full bg-blue-900 text-white font-black py-5 rounded-2xl hover:bg-blue-800 transition shadow-lg uppercase tracking-widest disabled:opacity-50">
                     Изпрати за одобрение
@@ -161,53 +168,55 @@
             else signInAnonymously(auth);
         });
 
-        // Improved File Selection Handler
-        document.getElementById('fileInput').addEventListener('change', function(e) {
+        // Robust File Handler
+        const fileInput = document.getElementById('fileInput');
+        const dropzone = document.getElementById('fileDropzone');
+        const display = document.getElementById('fileNameDisplay');
+        const icon = document.getElementById('fileIcon');
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(e) {
             const file = e.target.files[0];
-            const display = document.getElementById('fileNameDisplay');
-            const icon = document.getElementById('fileIcon');
-            const dropzone = document.getElementById('fileDropzone');
+            if (!file) return;
 
-            if (!file) {
-                attachedFileData = null;
-                display.innerText = "Кликнете, за да изберете файл";
-                return;
-            }
+            // Reset UI for new read
+            display.innerText = "Чете се: " + file.name;
+            icon.className = "fas fa-spinner fa-spin text-4xl text-blue-500 mb-3";
 
-            // Check size (1MB limit)
             if (file.size > 1048576) { 
-                showToast("Файлът е твърде голям! Лимит: 1MB.");
-                this.value = ''; // Reset input
-                attachedFileData = null;
-                display.innerText = "Кликнете, за да изберете файл";
+                showToast("Грешка: Файлът е над 1MB!");
+                resetFileInputUI();
                 return;
             }
 
             const reader = new FileReader();
-            reader.onloadstart = () => {
-                display.innerText = "Зареждане...";
-            };
-
+            
             reader.onload = function(event) {
                 attachedFileData = {
                     base64: event.target.result,
                     name: file.name,
                     type: file.type
                 };
-                display.innerText = "Готов за прикачване: " + file.name;
-                display.classList.add('text-blue-900');
-                icon.className = "fas fa-check-circle text-3xl text-emerald-500 mb-2";
-                dropzone.classList.replace('bg-amber-50', 'bg-emerald-50');
-                dropzone.classList.replace('border-amber-300', 'border-emerald-300');
+                
+                // Success UI
+                display.innerText = "Файлът е прикачен успешно!";
+                document.getElementById('fileSizeDisplay').innerText = file.name + " (" + (file.size/1024).toFixed(1) + " KB)";
+                display.classList.add('text-emerald-600');
+                icon.className = "fas fa-check-double text-4xl text-emerald-500 mb-3";
+                dropzone.classList.add('bg-emerald-50', 'border-emerald-300');
+                
+                showToast("Файлът е зареден!");
             };
 
-            reader.onerror = () => {
-                showToast("Грешка при четене на файла.");
-                attachedFileData = null;
+            reader.onerror = function() {
+                showToast("Неуспешно четене на файла.");
+                resetFileInputUI();
             };
 
+            // Start reading
             reader.readAsDataURL(file);
-        });
+        }
 
         function startSync() {
             if (!currentUser) return;
@@ -310,14 +319,12 @@
 
         function resetFileInputUI() {
             attachedFileData = null;
-            const display = document.getElementById('fileNameDisplay');
-            const icon = document.getElementById('fileIcon');
-            const dropzone = document.getElementById('fileDropzone');
-            
-            display.innerText = "Кликнете, за да изберете файл";
-            display.classList.remove('text-blue-900');
-            icon.className = "fas fa-cloud-upload-alt text-3xl text-amber-500 mb-2";
-            dropzone.className = "w-full bg-amber-50 p-6 rounded-xl border-2 border-dashed border-amber-300 flex flex-col items-center justify-center cursor-pointer hover:bg-amber-100 transition";
+            fileInput.value = ""; // Clear the input to allow re-selection
+            display.innerText = "Избери файл от устройството";
+            display.classList.remove('text-emerald-600', 'text-blue-900');
+            icon.className = "fas fa-cloud-upload-alt text-4xl text-amber-500 mb-3";
+            dropzone.className = "w-full bg-amber-50 p-8 rounded-xl border-2 border-dashed border-amber-300 flex flex-col items-center justify-center cursor-pointer hover:bg-amber-100 transition duration-200";
+            document.getElementById('fileSizeDisplay').innerText = "Разрешени: PDF, DOCX, JPG, PNG (до 1MB)";
         }
 
         document.getElementById('lessonForm').onsubmit = async (e) => {
@@ -339,10 +346,10 @@
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'lessons'), data);
                 window.closeModal();
-                showToast("Изпратено за одобрение!");
+                showToast("Материалът е изпратен успешно!");
             } catch (err) {
                 console.error(err);
-                showToast("Грешка при запис в базата данни.");
+                showToast("Проблем със сървъра. Опитайте пак.");
             } finally {
                 btn.disabled = false;
                 btn.innerText = "Изпрати за одобрение";
@@ -354,7 +361,7 @@
             const m = document.getElementById('toastMsg');
             m.innerText = msg;
             t.style.transform = 'translateY(0)';
-            setTimeout(() => t.style.transform = 'translateY(160%)', 3000);
+            setTimeout(() => t.style.transform = 'translateY(160%)', 4000);
         }
     </script>
 </body>
