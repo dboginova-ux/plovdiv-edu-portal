@@ -2,263 +2,315 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Образователен портал Пловдив</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добри практики - Област Пловдив</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Oswald:wght@500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap');
         
-        body { 
-            font-family: 'Roboto', sans-serif; 
+        body {
+            font-family: 'Montserrat', sans-serif;
             scroll-behavior: smooth;
         }
 
-        h1, h2, h3 { font-family: 'Oswald', sans-serif; }
-
-        .lesson-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr));
-            gap: 2rem;
+        .hero-gradient {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
         }
 
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .hidden-section {
+            display: none;
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen pb-20">
+<body class="bg-gray-50 text-gray-800">
 
-    <!-- Header -->
-    <header class="bg-blue-900 text-white sticky top-0 z-[100] shadow-2xl border-b-4 border-amber-500">
-        <div class="max-w-7xl mx-auto px-4 py-4 md:py-6 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <div class="bg-amber-500 p-2 md:p-3 rounded-xl shadow-lg">
-                    <i class="fas fa-book-reader text-blue-900 text-2xl"></i>
+    <!-- Навигация -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold text-blue-800 tracking-tighter">
+                        <i class="fas fa-graduation-cap mr-2"></i>Учители Пловдив
+                    </span>
                 </div>
-                <div>
-                    <h1 class="text-xl md:text-3xl font-bold uppercase tracking-tight">Портал Пловдив</h1>
-                    <p class="text-[10px] md:text-xs text-amber-400 font-bold uppercase tracking-widest">Хуманитарни науки</p>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#" class="text-gray-600 hover:text-blue-800 font-medium">Начало</a>
+                    <a href="#practices" class="text-gray-600 hover:text-blue-800 font-medium">Добри практики</a>
+                    <a href="#events" class="text-gray-600 hover:text-blue-800 font-medium">Събития</a>
+                    <button onclick="openShareModal()" class="bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700 transition">
+                        Сподели опит
+                    </button>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button class="text-gray-600"><i class="fas fa-bars text-2xl"></i></button>
                 </div>
             </div>
-            
-            <div class="flex items-center gap-3">
-                <button onclick="document.getElementById('uploadModal').classList.remove('hidden')" 
-                        class="bg-amber-500 text-blue-900 px-5 md:px-8 py-3 rounded-xl font-black text-xs md:text-sm hover:bg-amber-400 transition-all shadow-lg active:scale-95 flex items-center uppercase">
-                    <i class="fas fa-plus-circle mr-2"></i> Качи урок
-                </button>
-                <button id="adminToggle" onclick="window.toggleAdmin()" 
-                        class="w-12 h-12 border-2 border-blue-400 rounded-xl flex items-center justify-center hover:bg-blue-800 transition">
-                    <i class="fas fa-shield-alt"></i>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- Navigation -->
-    <nav class="bg-white border-b sticky top-[76px] md:top-[104px] z-50 shadow-sm overflow-x-auto no-scrollbar">
-        <div class="max-w-7xl mx-auto px-4 flex min-w-max">
-            <button onclick="setSubjectFilter('all')" id="tab-all" class="py-5 px-8 font-black text-[10px] md:text-xs uppercase tracking-widest border-b-4 border-blue-900 text-blue-900">Всички</button>
-            <button onclick="setSubjectFilter('География и икономика')" id="tab-geo" class="py-5 px-8 font-black text-[10px] md:text-xs uppercase tracking-widest border-b-4 border-transparent text-slate-400 hover:text-blue-900">География</button>
-            <button onclick="setSubjectFilter('История и цивилизации')" id="tab-hist" class="py-5 px-8 font-black text-[10px] md:text-xs uppercase tracking-widest border-b-4 border-transparent text-slate-400 hover:text-blue-900">История</button>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 py-8">
-        <div id="adminNotice" class="hidden bg-red-600 text-white p-6 rounded-2xl mb-10 shadow-xl flex items-center justify-between animate-pulse">
-            <div class="flex items-center gap-4">
-                <i class="fas fa-user-check text-2xl"></i>
-                <div>
-                    <p class="font-black uppercase text-sm tracking-widest">Административен панел</p>
-                    <p class="text-[10px] opacity-90 uppercase font-bold">Одобряване на нови файлове и уроци</p>
+    <!-- Hero Секция -->
+    <section class="hero-gradient py-20 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-6">Споделяме опит, вдъхновяваме бъдещето</h1>
+            <p class="text-xl md:text-2xl mb-10 text-blue-100 max-w-3xl mx-auto">
+                Платформа за иновативни методи и успешни педагогически практики от учителите в област Пловдив.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#practices" class="bg-white text-blue-800 px-8 py-3 rounded-lg font-bold hover:bg-blue-50 transition">Разгледай практиките</a>
+                <a href="#about" class="border-2 border-white text-white px-8 py-3 rounded-lg font-bold hover:bg-white/10 transition">Научи повече</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Секция с филтри -->
+    <section class="py-8 bg-white border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex gap-2 overflow-x-auto pb-2">
+                    <button class="bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-sm font-semibold whitespace-nowrap">Всички</button>
+                    <button class="bg-gray-100 text-gray-600 px-4 py-1 rounded-full text-sm font-semibold hover:bg-gray-200 whitespace-nowrap">STEM</button>
+                    <button class="bg-gray-100 text-gray-600 px-4 py-1 rounded-full text-sm font-semibold hover:bg-gray-200 whitespace-nowrap">Хуманитарни науки</button>
+                    <button class="bg-gray-100 text-gray-600 px-4 py-1 rounded-full text-sm font-semibold hover:bg-gray-200 whitespace-nowrap">Изкуства</button>
+                    <button class="bg-gray-100 text-gray-600 px-4 py-1 rounded-full text-sm font-semibold hover:bg-gray-200 whitespace-nowrap">Начален етап</button>
+                </div>
+                <div class="relative w-full md:w-64">
+                    <input type="text" placeholder="Търси практика..." class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                 </div>
             </div>
-            <button onclick="window.toggleAdmin()" class="bg-white text-red-600 px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-lg">Изход</button>
+        </div>
+    </section>
+
+    <!-- Списък с практики -->
+    <main id="practices" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h2 class="text-3xl font-bold mb-12 flex items-center">
+            <span class="w-10 h-1 bg-blue-600 mr-4"></span> Последни споделени практики
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="practicesGrid">
+            <!-- Карта 1 -->
+            <div class="bg-white rounded-xl shadow-sm border overflow-hidden card-hover">
+                <div class="h-48 bg-blue-200 flex items-center justify-center">
+                    <i class="fas fa-microscope text-6xl text-blue-400"></i>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center text-xs font-bold text-blue-600 mb-2 uppercase tracking-wider">
+                        <span class="bg-blue-50 px-2 py-1 rounded">STEM Обучение</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Интерактивна лаборатория по химия</h3>
+                    <p class="text-gray-600 mb-6 line-clamp-3">Приложение на виртуална реалност за провеждане на безопасни експерименти в 7-ми клас.</p>
+                    <div class="flex items-center justify-between border-t pt-4">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 mr-2 flex items-center justify-center text-xs font-bold">ИД</div>
+                            <span class="text-sm font-medium">Иван Димитров</span>
+                        </div>
+                        <button class="text-blue-600 font-bold hover:underline">Виж още</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Карта 2 -->
+            <div class="bg-white rounded-xl shadow-sm border overflow-hidden card-hover">
+                <div class="h-48 bg-green-200 flex items-center justify-center">
+                    <i class="fas fa-book-open text-6xl text-green-400"></i>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center text-xs font-bold text-green-600 mb-2 uppercase tracking-wider">
+                        <span class="bg-green-50 px-2 py-1 rounded">Български език</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Геймификация в часовете по литература</h3>
+                    <p class="text-gray-600 mb-6 line-clamp-3">Използване на ролеви игри и цифрови платформи за повишаване на четивната грамотност.</p>
+                    <div class="flex items-center justify-between border-t pt-4">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 mr-2 flex items-center justify-center text-xs font-bold">МП</div>
+                            <span class="text-sm font-medium">Мария Петрова</span>
+                        </div>
+                        <button class="text-blue-600 font-bold hover:underline">Виж още</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Карта 3 -->
+            <div class="bg-white rounded-xl shadow-sm border overflow-hidden card-hover">
+                <div class="h-48 bg-yellow-200 flex items-center justify-center">
+                    <i class="fas fa-palette text-6xl text-yellow-400"></i>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center text-xs font-bold text-yellow-600 mb-2 uppercase tracking-wider">
+                        <span class="bg-yellow-50 px-2 py-1 rounded">Начален етап</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Проектно базирано учене: Еко герои</h3>
+                    <p class="text-gray-600 mb-6 line-clamp-3">Ученици от 3-ти клас създават кампания за рециклиране в училищния район на Пловдив.</p>
+                    <div class="flex items-center justify-between border-t pt-4">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 mr-2 flex items-center justify-center text-xs font-bold">АС</div>
+                            <span class="text-sm font-medium">Анна Симеонова</span>
+                        </div>
+                        <button class="text-blue-600 font-bold hover:underline">Виж още</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div id="lessonsGrid" class="lesson-grid">
-            <div id="loading" class="col-span-full text-center py-32">
-                <div class="w-16 h-16 border-4 border-blue-900 border-t-amber-500 rounded-full animate-spin mx-auto mb-6"></div>
-                <p class="text-slate-400 font-bold uppercase tracking-widest text-xs">Зареждане на ресурси...</p>
-            </div>
+        <div class="text-center mt-12">
+            <button class="border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-blue-600 hover:text-white transition">Зареди още практики</button>
         </div>
     </main>
 
-    <!-- Upload Modal -->
-    <div id="uploadModal" class="fixed inset-0 bg-slate-900/90 hidden flex items-end md:items-center justify-center z-[200] backdrop-blur-md">
-        <div class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-2xl max-h-[95vh] overflow-y-auto shadow-2xl p-6 md:p-10">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-bold text-blue-950 uppercase">Сподели материал</h2>
-                <button onclick="document.getElementById('uploadModal').classList.add('hidden')" class="text-slate-400 hover:text-red-600">
-                    <i class="fas fa-times-circle text-3xl"></i>
-                </button>
+    <!-- Секция Събития -->
+    <section id="events" class="bg-gray-100 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold mb-12">Предстоящи квалификации в Пловдив</h2>
+            <div class="space-y-4">
+                <div class="bg-white p-6 rounded-lg shadow-sm flex flex-col md:flex-row items-center gap-6 border-l-4 border-blue-600">
+                    <div class="text-center md:text-left">
+                        <span class="text-3xl font-bold block">15</span>
+                        <span class="text-gray-500 uppercase font-bold text-sm">Окт</span>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-xl font-bold">Семинар: Киберсигурност за учители</h4>
+                        <p class="text-gray-600"><i class="fas fa-map-marker-alt mr-2 text-red-500"></i> Пловдивски университет "Паисий Хилендарски"</p>
+                    </div>
+                    <button class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition w-full md:w-auto">Регистрация</button>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm flex flex-col md:flex-row items-center gap-6 border-l-4 border-green-600">
+                    <div class="text-center md:text-left">
+                        <span class="text-3xl font-bold block">22</span>
+                        <span class="text-gray-500 uppercase font-bold text-sm">Окт</span>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-xl font-bold">Отворен урок: Приобщаващо образование</h4>
+                        <p class="text-gray-600"><i class="fas fa-map-marker-alt mr-2 text-red-500"></i> СУ "Св. Патриарх Евтимий", Пловдив</p>
+                    </div>
+                    <button class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition w-full md:w-auto">Регистрация</button>
+                </div>
             </div>
-            <form id="lessonForm" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        </div>
+    </section>
+
+    <!-- Модален прозорец за споделяне -->
+    <div id="shareModal" class="fixed inset-0 bg-black/50 hidden-section flex items-center justify-center z-[100] px-4">
+        <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 class="text-2xl font-bold text-blue-800">Сподели добра практика</h3>
+                <button onclick="closeShareModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="p-8">
+                <form onsubmit="handleSubmit(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold mb-1">Име и Фамилия</label>
+                            <input type="text" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-1">Учебно заведение</label>
+                            <input type="text" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                    </div>
                     <div>
-                        <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Предмет</label>
-                        <select id="subject" class="w-full bg-slate-100 p-4 rounded-xl font-bold outline-none border-2 border-transparent focus:border-blue-900">
-                            <option value="География и икономика">География и икономика</option>
-                            <option value="История и цивилизации">История и цивилизации</option>
+                        <label class="block text-sm font-bold mb-1">Заглавие на практиката</label>
+                        <input type="text" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-1">Категория</label>
+                        <select class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option>STEM</option>
+                            <option>Хуманитарни науки</option>
+                            <option>Начален етап</option>
+                            <option>Изкуства и спорт</option>
+                            <option>Училищна среда</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Автор</label>
-                        <input type="text" id="author" required placeholder="Вашето име" class="w-full bg-slate-100 p-4 rounded-xl outline-none border-2 border-transparent focus:border-blue-900">
+                        <label class="block text-sm font-bold mb-1">Описание (кратко)</label>
+                        <textarea rows="4" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
                     </div>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Заглавие</label>
-                    <input type="text" id="title" required placeholder="Име на урока/ресурса" class="w-full bg-slate-100 p-4 rounded-xl outline-none border-2 border-transparent focus:border-blue-900">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Линк към файл (Google Drive / Dropbox / OneDrive)</label>
-                    <div class="relative">
-                        <i class="fas fa-paperclip absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="url" id="fileUrl" placeholder="https://drive.google.com/..." class="w-full bg-amber-50 p-4 pl-12 rounded-xl outline-none border-2 border-amber-200 focus:border-blue-900 font-medium text-sm">
+                    <div class="flex justify-end gap-3 mt-6">
+                        <button type="button" onclick="closeShareModal()" class="px-6 py-2 border rounded font-bold">Отказ</button>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">Изпрати за преглед</button>
                     </div>
-                    <p class="text-[9px] text-slate-400 mt-2 uppercase font-bold">* Моля, уверете се, че линкът е публичен за четене.</p>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Описание</label>
-                    <textarea id="content" rows="4" required placeholder="Кратко описание на ресурса..." class="w-full bg-slate-100 p-4 rounded-xl outline-none border-2 border-transparent focus:border-blue-900"></textarea>
-                </div>
-                <button type="submit" class="w-full bg-blue-900 text-white font-black py-5 rounded-2xl hover:bg-blue-800 transition shadow-lg uppercase tracking-widest">Изпрати за одобрение</button>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- Toast -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-white border-l-8 border-blue-900 p-5 rounded-2xl shadow-2xl z-[500] translate-y-40 transition-all duration-500">
-        <p id="toastMsg" class="font-black text-slate-800 text-xs uppercase"></p>
+    <!-- Уведомление -->
+    <div id="toast" class="fixed bottom-10 right-10 bg-green-600 text-white px-8 py-4 rounded-xl shadow-2xl transition-all duration-500 translate-y-20 opacity-0 z-[200]">
+        <i class="fas fa-check-circle mr-2"></i> Благодарим Ви! Вашата практика беше изпратена успешно.
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <!-- Футър -->
+    <footer class="bg-blue-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div>
+                    <h4 class="text-xl font-bold mb-6">Учители Пловдив</h4>
+                    <p class="text-blue-200">Регионална платформа за подкрепа на учителите от област Пловдив. Заедно градим качествено образование.</p>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold mb-6">Бързи връзки</h4>
+                    <ul class="space-y-3 text-blue-200">
+                        <li><a href="#" class="hover:text-white transition">Методически насоки</a></li>
+                        <li><a href="#" class="hover:text-white transition">Архив материали</a></li>
+                        <li><a href="#" class="hover:text-white transition">Контакти с РУО</a></li>
+                        <li><a href="#" class="hover:text-white transition">Често задавани въпроси</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold mb-6">Контакти</h4>
+                    <p class="text-blue-200 mb-2"><i class="fas fa-envelope mr-2"></i> info@teachers-plovdiv.bg</p>
+                    <p class="text-blue-200 mb-6"><i class="fas fa-phone mr-2"></i> +359 32 600 000</p>
+                    <div class="flex gap-4">
+                        <a href="#" class="text-2xl hover:text-blue-400"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-2xl hover:text-blue-400"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-blue-800 mt-12 pt-8 text-center text-blue-400 text-sm">
+                &copy; 2024 Регионална платформа за добри практики - Пловдив. Всички права запазени.
+            </div>
+        </div>
+    </footer>
 
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'plovdiv-edu-portal-v1';
-
-        let isAdmin = false;
-        let currentUser = null;
-        let activeFilter = 'all';
-        let unsubscribe = null;
-
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            if (user) startSync();
-            else signInAnonymously(auth);
-        });
-
-        function startSync() {
-            if (!currentUser) return;
-            if (unsubscribe) unsubscribe();
-
-            const collRef = collection(db, 'artifacts', appId, 'public', 'data', 'lessons');
-            unsubscribe = onSnapshot(collRef, (snap) => {
-                const grid = document.getElementById('lessonsGrid');
-                grid.innerHTML = '';
-                
-                const items = [];
-                snap.forEach(d => items.push({ id: d.id, ...d.data() }));
-
-                let displayItems = isAdmin ? items.filter(i => i.status === 'pending') : items.filter(i => i.status === 'approved');
-                if (activeFilter !== 'all') displayItems = displayItems.filter(i => i.subject === activeFilter);
-
-                if (displayItems.length === 0) {
-                    grid.innerHTML = `<div class="col-span-full py-20 text-center opacity-50 uppercase font-black text-xs">Няма открити материали.</div>`;
-                    return;
-                }
-
-                displayItems.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-                displayItems.forEach(item => {
-                    const card = document.createElement('article');
-                    card.className = "bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col h-full";
-                    card.innerHTML = `
-                        <div class="mb-4 flex justify-between items-start">
-                            <span class="text-[9px] font-black px-3 py-1 bg-slate-100 rounded-lg uppercase">${item.subject}</span>
-                            ${item.fileUrl ? `<i class="fas fa-file-pdf text-red-500 text-xl"></i>` : ''}
-                        </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-3">${item.title}</h3>
-                        <p class="text-slate-500 text-sm mb-6 flex-grow line-clamp-3">${item.content}</p>
-                        
-                        ${item.fileUrl ? `
-                            <a href="${item.fileUrl}" target="_blank" class="mb-6 bg-blue-50 text-blue-700 p-3 rounded-xl flex items-center justify-center gap-2 font-bold text-xs hover:bg-blue-100 transition">
-                                <i class="fas fa-download"></i> Изтегли ресурса
-                            </a>
-                        ` : ''}
-
-                        <div class="pt-6 border-t flex justify-between items-center">
-                            <span class="text-[10px] font-black text-slate-400 uppercase">от ${item.author}</span>
-                            <div class="flex gap-2">
-                                ${isAdmin ? `
-                                    <button onclick="window.approve('${item.id}')" class="w-10 h-10 bg-emerald-500 text-white rounded-lg"><i class="fas fa-check"></i></button>
-                                    <button onclick="window.remove('${item.id}')" class="w-10 h-10 bg-red-500 text-white rounded-lg"><i class="fas fa-trash"></i></button>
-                                ` : ''}
-                            </div>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-            });
+    <script>
+        function openShareModal() {
+            document.getElementById('shareModal').classList.remove('hidden-section');
+            document.body.style.overflow = 'hidden';
         }
 
-        window.toggleAdmin = () => {
-            isAdmin = !isAdmin;
-            document.getElementById('adminNotice').classList.toggle('hidden', !isAdmin);
-            document.getElementById('adminToggle').classList.toggle('bg-red-600', isAdmin);
-            document.getElementById('adminToggle').classList.toggle('text-white', isAdmin);
-            startSync();
-        };
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.add('hidden-section');
+            document.body.style.overflow = 'auto';
+        }
 
-        window.setSubjectFilter = (sub) => {
-            activeFilter = sub;
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('border-blue-900', 'text-blue-900'));
-            const btnId = sub === 'all' ? 'tab-all' : (sub === 'География и икономика' ? 'tab-geo' : 'tab-hist');
-            document.getElementById(btnId).classList.add('border-blue-900', 'text-blue-900');
-            startSync();
-        };
-
-        window.approve = async (id) => {
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'lessons', id), { status: 'approved' });
-            showToast("Материалът е одобрен!");
-        };
-
-        window.remove = async (id) => {
-            if (confirm("Изтриване?")) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'lessons', id));
-                showToast("Изтрито.");
-            }
-        };
-
-        document.getElementById('lessonForm').onsubmit = async (e) => {
+        function handleSubmit(e) {
             e.preventDefault();
-            const data = {
-                title: document.getElementById('title').value,
-                author: document.getElementById('author').value,
-                subject: document.getElementById('subject').value,
-                content: document.getElementById('content').value,
-                fileUrl: document.getElementById('fileUrl').value || null,
-                status: 'pending',
-                createdAt: new Date().toISOString()
-            };
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'lessons'), data);
-            document.getElementById('uploadModal').classList.add('hidden');
-            document.getElementById('lessonForm').reset();
-            showToast("Изпратено за одобрение!");
-        };
+            closeShareModal();
+            
+            const toast = document.getElementById('toast');
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            document.getElementById('toastMsg').innerText = msg;
-            t.style.transform = 'translateY(0)';
-            setTimeout(() => t.style.transform = 'translateY(160%)', 3000);
+            setTimeout(() => {
+                toast.style.transform = 'translateY(20px)';
+                toast.style.opacity = '0';
+            }, 3000);
+        }
+
+        // Затваряне на модала при клик извън него
+        window.onclick = function(event) {
+            const modal = document.getElementById('shareModal');
+            if (event.target == modal) {
+                closeShareModal();
+            }
         }
     </script>
 </body>
