@@ -124,7 +124,7 @@
                 <div>
                     <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Прикачи файл (Word, PDF, PPTX)</label>
                     <div class="relative">
-                        <input type="file" id="fileInput" class="hidden">
+                        <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx">
                         <div id="fileDropzone" 
                              class="w-full bg-blue-50 p-8 rounded-xl border-2 border-dashed border-blue-200 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-100 transition duration-200">
                             <i id="fileIcon" class="fas fa-cloud-upload-alt text-4xl text-blue-500 mb-3 transition-all"></i>
@@ -165,6 +165,7 @@
         let activeFilter = 'all';
         let unsubscribe = null;
         let attachedFileData = null;
+        let isFileLoading = false;
 
         // UI Елементи
         const uploadModal = document.getElementById('uploadModal');
@@ -202,17 +203,41 @@
             if (file) handleFile(file);
         });
 
+        // Drag and Drop
+        fileDropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileDropzone.classList.add('drag-over');
+        });
+
+        fileDropzone.addEventListener('dragleave', () => {
+            fileDropzone.classList.remove('drag-over');
+        });
+
+        fileDropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileDropzone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
         function handleFile(file) {
             if (file.size > 1024 * 1024) {
                 showToast("Файлът е твърде голям! Максимум 1MB.");
-                fileInput.value = "";
+                resetFileUI();
                 return;
             }
 
-            fileNameDisplay.innerText = "Обработка...";
+            isFileLoading = true;
+            submitBtn.disabled = true;
+            fileNameDisplay.innerText = "Обработка на файла...";
             fileIcon.className = "fas fa-spinner fa-spin text-4xl text-blue-500 mb-3";
 
             const reader = new FileReader();
+            
+            reader.onloadstart = () => {
+                isFileLoading = true;
+            };
+
             reader.onload = (e) => {
                 attachedFileData = {
                     base64: e.target.result,
@@ -222,7 +247,15 @@
                 fileNameDisplay.innerText = file.name;
                 fileIcon.className = getFileIconClass(file.name) + " text-4xl mb-3";
                 fileDropzone.classList.add('bg-blue-100', 'border-blue-400');
+                isFileLoading = false;
+                submitBtn.disabled = false;
             };
+
+            reader.onerror = () => {
+                showToast("Грешка при четене на файла.");
+                resetFileUI();
+            };
+
             reader.readAsDataURL(file);
         }
 
@@ -236,18 +269,24 @@
 
         function resetFileUI() {
             attachedFileData = null;
+            isFileLoading = false;
             fileInput.value = "";
             fileNameDisplay.innerText = "Кликни за избор на файл";
             fileIcon.className = "fas fa-cloud-upload-alt text-4xl text-blue-500 mb-3";
             fileDropzone.classList.remove('bg-blue-100', 'border-blue-400');
+            submitBtn.disabled = false;
         }
 
         // Firebase Auth
         const initAuth = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
             }
         };
 
@@ -315,9 +354,6 @@
                 });
             }, (err) => {
                 console.error("Firestore error:", err);
-                if (err.code === 'permission-denied') {
-                    showToast("Сървърна грешка при достъп.");
-                }
             });
         }
 
@@ -332,10 +368,15 @@
         window.manage = async (id, action) => {
             if (!auth.currentUser) return;
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lessons', id);
-            if (action === 'delete') {
-                if(confirm("Изтриване?")) await deleteDoc(docRef);
-            } else {
-                await updateDoc(docRef, { status: action });
+            try {
+                if (action === 'delete') {
+                    if(confirm("Сигурни ли сте, че искате да изтриете този ресурс?")) await deleteDoc(docRef);
+                } else {
+                    await updateDoc(docRef, { status: action });
+                    showToast("Статусът е обновен.");
+                }
+            } catch (e) {
+                showToast("Грешка при операцията.");
             }
         };
 
@@ -364,7 +405,21 @@
         // Form Submit
         lessonForm.onsubmit = async (e) => {
             e.preventDefault();
-            if (!auth.currentUser) return;
+            
+            if (!auth.currentUser) {
+                showToast("Моля, изчакайте свързване със сървъра...");
+                return;
+            }
+
+            if (isFileLoading) {
+                showToast("Моля, изчакайте файлът да се зареди.");
+                return;
+            }
+
+            if (!attachedFileData) {
+                showToast("Моля, изберете файл за качване.");
+                return;
+            }
 
             submitBtn.disabled = true;
             submitBtn.innerText = "ИЗПРАЩАНЕ...";
@@ -384,6 +439,7 @@
                 handleCloseModal();
                 showToast("Успешно изпратено за одобрение!");
             } catch (err) {
+                console.error("Upload error:", err);
                 showToast("Грешка при изпращане.");
                 submitBtn.disabled = false;
                 submitBtn.innerText = "ИЗПРАТИ ЗА ОДОБРЕНИЕ";
