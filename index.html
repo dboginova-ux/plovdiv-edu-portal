@@ -89,7 +89,7 @@
         <div class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-2xl max-h-[95vh] overflow-y-auto shadow-2xl p-6 md:p-10">
             <div class="flex justify-between items-center mb-8">
                 <h2 class="text-2xl font-bold text-blue-950 uppercase">Качи файл от компютър</h2>
-                <button onclick="document.getElementById('uploadModal').classList.add('hidden')" class="text-slate-400 hover:text-red-600">
+                <button onclick="window.closeModal()" class="text-slate-400 hover:text-red-600">
                     <i class="fas fa-times-circle text-3xl"></i>
                 </button>
             </div>
@@ -114,9 +114,9 @@
                 <div>
                     <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Избери файл (PDF, Docx, Изображение)</label>
                     <div class="relative group">
-                        <label for="fileInput" class="w-full bg-amber-50 p-6 rounded-xl border-2 border-dashed border-amber-300 flex flex-col items-center justify-center cursor-pointer hover:bg-amber-100 transition">
-                            <i class="fas fa-cloud-upload-alt text-3xl text-amber-500 mb-2"></i>
-                            <span id="fileNameDisplay" class="text-xs font-bold text-slate-600 uppercase">Кликнете, за да изберете файл</span>
+                        <label for="fileInput" id="fileDropzone" class="w-full bg-amber-50 p-6 rounded-xl border-2 border-dashed border-amber-300 flex flex-col items-center justify-center cursor-pointer hover:bg-amber-100 transition">
+                            <i id="fileIcon" class="fas fa-cloud-upload-alt text-3xl text-amber-500 mb-2"></i>
+                            <span id="fileNameDisplay" class="text-xs font-bold text-slate-600 uppercase text-center">Кликнете, за да изберете файл</span>
                             <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.ppt,.pptx">
                         </label>
                     </div>
@@ -161,26 +161,51 @@
             else signInAnonymously(auth);
         });
 
-        // Handle File Selection and Conversion to Base64
+        // Improved File Selection Handler
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
-            if (!file) return;
+            const display = document.getElementById('fileNameDisplay');
+            const icon = document.getElementById('fileIcon');
+            const dropzone = document.getElementById('fileDropzone');
 
+            if (!file) {
+                attachedFileData = null;
+                display.innerText = "Кликнете, за да изберете файл";
+                return;
+            }
+
+            // Check size (1MB limit)
             if (file.size > 1048576) { 
-                alert("Файлът е твърде голям! Моля, изберете файл под 1MB.");
-                this.value = '';
+                showToast("Файлът е твърде голям! Лимит: 1MB.");
+                this.value = ''; // Reset input
+                attachedFileData = null;
+                display.innerText = "Кликнете, за да изберете файл";
                 return;
             }
 
             const reader = new FileReader();
+            reader.onloadstart = () => {
+                display.innerText = "Зареждане...";
+            };
+
             reader.onload = function(event) {
                 attachedFileData = {
                     base64: event.target.result,
                     name: file.name,
                     type: file.type
                 };
-                document.getElementById('fileNameDisplay').innerText = "Избран: " + file.name;
+                display.innerText = "Готов за прикачване: " + file.name;
+                display.classList.add('text-blue-900');
+                icon.className = "fas fa-check-circle text-3xl text-emerald-500 mb-2";
+                dropzone.classList.replace('bg-amber-50', 'bg-emerald-50');
+                dropzone.classList.replace('border-amber-300', 'border-emerald-300');
             };
+
+            reader.onerror = () => {
+                showToast("Грешка при четене на файла.");
+                attachedFileData = null;
+            };
+
             reader.readAsDataURL(file);
         });
 
@@ -277,6 +302,24 @@
             }
         };
 
+        window.closeModal = () => {
+            document.getElementById('uploadModal').classList.add('hidden');
+            document.getElementById('lessonForm').reset();
+            resetFileInputUI();
+        };
+
+        function resetFileInputUI() {
+            attachedFileData = null;
+            const display = document.getElementById('fileNameDisplay');
+            const icon = document.getElementById('fileIcon');
+            const dropzone = document.getElementById('fileDropzone');
+            
+            display.innerText = "Кликнете, за да изберете файл";
+            display.classList.remove('text-blue-900');
+            icon.className = "fas fa-cloud-upload-alt text-3xl text-amber-500 mb-2";
+            dropzone.className = "w-full bg-amber-50 p-6 rounded-xl border-2 border-dashed border-amber-300 flex flex-col items-center justify-center cursor-pointer hover:bg-amber-100 transition";
+        }
+
         document.getElementById('lessonForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
@@ -295,14 +338,11 @@
 
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'lessons'), data);
-                document.getElementById('uploadModal').classList.add('hidden');
-                document.getElementById('lessonForm').reset();
-                document.getElementById('fileNameDisplay').innerText = "Кликнете, за да изберете файл";
-                attachedFileData = null;
+                window.closeModal();
                 showToast("Изпратено за одобрение!");
             } catch (err) {
                 console.error(err);
-                showToast("Грешка при изпращането.");
+                showToast("Грешка при запис в базата данни.");
             } finally {
                 btn.disabled = false;
                 btn.innerText = "Изпрати за одобрение";
@@ -311,7 +351,8 @@
 
         function showToast(msg) {
             const t = document.getElementById('toast');
-            document.getElementById('toastMsg').innerText = msg;
+            const m = document.getElementById('toastMsg');
+            m.innerText = msg;
             t.style.transform = 'translateY(0)';
             setTimeout(() => t.style.transform = 'translateY(160%)', 3000);
         }
